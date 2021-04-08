@@ -1,0 +1,118 @@
+CREATE TABLE promotion(
+    promotionid int AUTO_INCREMENT PRIMARY KEY,
+    promotionname varchar(50) NOT NULL,
+    promotionvalidity varchar(50) NOT NULL,
+    promotionamount int NOT NULL
+)
+
+CREATE TABLE offers(
+    userid int NOT NULL,
+    promoid int NOT NULL,
+    PRIMARY KEY(userid,promoid),
+    FOREIGN KEY(userid) REFERENCES freeuser(userid),
+    FOREIGN KEY(promoid) REFERENCES promotion(promotionid)
+)
+
+DROP DATABASE chat;
+CREATE DATABASE chat;
+use chat;
+
+CREATE TABLE users(
+    userid int PRIMARY KEY AUTO_INCREMENT,
+    password varchar(50) NOT NULL,
+    firstname varchar(20) NOT NULL,
+    lastname varchar(20) DEFAULT NULL,
+    emailid varchar(30) NOT NULL UNIQUE,
+    dob date NOT null CHECK(dob <'2012-12-31'),
+    description varchar(800) DEFAULT NULL
+)engine=innodb;
+
+CREATE table phoneno(
+    pnum int NOT NULL PRIMARY KEY,
+    userid int NOT NULL,
+    FOREIGN KEY(userid) REFERENCES users(userid)
+)engine=innodb;
+
+CREATE TABLE friends(
+    friendid int NOT NULL,
+    userid int NOT NULL,
+    PRIMARY KEY(friendid,userid),
+    FOREIGN KEY(friendid) REFERENCES users(userid),
+    FOREIGN KEY(userid) REFERENCES users(userid)
+)engine=innodb;
+
+CREATE TABLE friendpending(
+    senderid int NOT NULL,
+    userid int NOT NULL,
+    PRIMARY KEY(senderid,userid),
+    FOREIGN KEY(senderid) REFERENCES users(userid),
+    FOREIGN KEY (userid) REFERENCES users(userid)
+)engine=innodb;
+
+CREATE TABLE freeuser(
+    userid int NOT NULL PRIMARY KEY,
+    promotionname varchar(30) DEFAULT 'DIWALI DHAMAKA',
+    promotionamount int DEFAULT 450,
+    promotionvalidity varchar(20) DEFAULT '3-months',
+    FOREIGN KEY(userid) REFERENCES users(userid)
+)engine=innodb;
+
+CREATE TABLE paiduser(
+    userid int NOT NULL PRIMARY KEY,
+    amountpaid int NOT NULL,
+    validity timestamp NOT NULL,
+    datepurchased timestamp NOT NULL DEFAULT now(),
+    FOREIGN KEY(userid) REFERENCES users(userid)
+)engine=innodb;
+
+CREATE TABLE advertisement(
+    advtid int PRIMARY KEY AUTO_INCREMENT,
+    url varchar(100) NOT NULL,
+    image longblob NOT NULL,
+    userid int NOT NULL,
+    FOREIGN KEY(userid) REFERENCES freeuser(userid)
+)engine=innodb;
+
+CREATE TABLE messages(
+    content varchar(800) NOT NULL,
+    datesent timestamp NOT NULL DEFAULT now(),
+    userid int NOT NULL,
+    friendid int NOT NULL,
+    PRIMARY KEY(userid,friendid,datesent),
+    FOREIGN KEY(userid) REFERENCES users(userid),
+    FOREIGN KEY(friendid) REFERENCES friends(friendid)
+)engine=innodb;
+
+CREATE TABLE pages(
+    pageid int PRIMARY KEY AUTO_INCREMENT,
+    name varchar(30) NOT NULL,
+    description varchar(800) DEFAULT NULL,
+    adminid int NOT NULL,
+    FOREIGN KEY(adminid) REFERENCES paiduser(userid)
+)engine=innodb;
+
+CREATE TABLE follows(
+    userid int NOT NULL,
+    pageid int NOT NULL,
+    PRIMARY KEY(userid,pageid),
+    FOREIGN KEY(userid) REFERENCES users(userid),
+    FOREIGN KEY(pageid) REFERENCES pages(pageid)
+)engine=innodb;
+
+CREATE TABLE post(
+    postid int PRIMARY KEY AUTO_INCREMENT,
+    pageid int NOT NULL,
+    content varchar(800) NOT NULL,
+    datecreated timestamp NOT NULL DEFAULT now(),
+    FOREIGN KEY(pageid) REFERENCES pages(pageid)
+)engine=innodb;
+
+CREATE TABLE interacts(
+    userid int NOT NULL,
+    postid int NOT NULL,
+    liked tinyint DEFAULT 0,
+    comments varchar(300) NOT NULL,
+    PRIMARY KEY(userid,postid),
+    FOREIGN KEY(userid) REFERENCES users(userid),
+    FOREIGN KEY(postid) REFERENCES post(postid)
+)engine=innodb;
